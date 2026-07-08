@@ -10,7 +10,6 @@ from langgraph.prebuilt import create_react_agent
 
 from contelix.config import ENABLE_DEBUG
 from contelix.llm_factory import get_llm
-from contelix.checkpoint.manager import get_checkpointer
 from contelix.retry import AGENT_RETRY_POLICY
 from contelix.agents.node_factory import make_agent_node
 from contelix.state.schemas import ResearchState
@@ -101,4 +100,4 @@ def build_research_graph() -> StateGraph:
         )
 
     builder.add_edge(START, "supervisor")
-    return builder.compile(checkpointer=get_checkpointer())
+    return builder.compile()

@@ -99,7 +99,10 @@ def _run_research_task(task_id: str, request: ResearchRequest):
 
     try:
         graph = build_top_graph()
-        config = {"recursion_limit": MAX_RECURSION_LIMIT}
+        config = {
+            "configurable": {"thread_id": task_id},
+            "recursion_limit": MAX_RECURSION_LIMIT,
+        }
 
         for _ in graph.stream(
             {"topic": request.topic, "messages": [{"role": "user", "content": request.topic}]},

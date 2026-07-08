@@ -15,6 +15,7 @@ Environment:
 import argparse
 import os
 import sys
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -76,7 +77,10 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
     print("🚀 Starting research pipeline...\n")
     print("-" * 60)
 
-    config = {"recursion_limit": MAX_RECURSION_LIMIT}
+    config = {
+        "configurable": {"thread_id": str(uuid.uuid4())[:8]},
+        "recursion_limit": MAX_RECURSION_LIMIT,
+    }
 
     try:
         for event in graph.stream(
