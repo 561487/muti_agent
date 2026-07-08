@@ -9,11 +9,12 @@ import os
 from pathlib import Path
 from dotenv import load_dotenv
 
-# Load .env file from project root or current directory
-load_dotenv(PROJECT_ROOT / ".env")
-
 # ── Project Paths ──────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
+
+# Load .env from project root (not CWD-dependent)
+load_dotenv(PROJECT_ROOT / ".env")
+
 OUTPUT_DIR = Path(os.getenv("CONTELIX_OUTPUT_DIR", PROJECT_ROOT / "output"))
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
