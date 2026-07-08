@@ -96,12 +96,15 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
                     else:
                         print(f"  [{node_name}] {node_output}")
             else:
+                agent_labels = {
+                    "research_team": "🔍 研究团队工作中",
+                    "analysis_team": "📊 分析团队工作中",
+                    "report_team": "📝 报告团队工作中",
+                }
                 for node_name in event:
-                    label = {
-                        "research_team": "🔍 搜索中...",
-                        "analysis_team": "📊 分析中...",
-                        "report_team": "📝 写报告中...",
-                    }.get(node_name, f"⚙️  {node_name}")
+                    if node_name is None or node_name == "supervisor":
+                        continue
+                    label = agent_labels.get(node_name, f"⚙️  {node_name}")
                     print(label)
 
         print("-" * 60)

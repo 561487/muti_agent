@@ -151,10 +151,20 @@ if run_button and topic:
     with st.spinner("正在构建 Agent 管线..."):
         graph = build_top_graph()
 
-    phase_map = {
-        "research_team": ("🔍", "搜索中（网络搜索 + 网页抓取）..."),
-        "analysis_team": ("📊", "分析中（SWOT + 趋势 + 竞品对比）..."),
-        "report_team": ("📝", "写报告中（大纲 + 内容 + 图表 + 编辑）..."),
+    # Agent name → Chinese label mapping
+    agent_label_map = {
+        "search_agent": ("🔍", "搜索中"),
+        "scraper_agent": ("📄", "抓取网页"),
+        "swot_analyst": ("📊", "SWOT 分析"),
+        "trend_analyst": ("📈", "趋势分析"),
+        "comparison_analyst": ("⚖️", "竞品对比"),
+        "outline_writer": ("📋", "写大纲"),
+        "content_writer": ("✍️", "撰写报告"),
+        "chart_generator": ("📊", "生成图表"),
+        "editor": ("✅", "编辑审校"),
+        "research_team": ("🔍", "研究团队工作中"),
+        "analysis_team": ("📊", "分析团队工作中"),
+        "report_team": ("📝", "报告团队工作中"),
     }
 
     event_index = 0
@@ -176,7 +186,12 @@ if run_button and topic:
             progress = min(event_index / (total_phases * 3), 0.95)
 
             for node_name, node_output in event.items():
-                icon, label = phase_map.get(node_name, ("⚙️", node_name))
+                if node_name is None or node_name == "supervisor":
+                    continue  # 跳过内部路由事件
+
+                icon, label = agent_label_map.get(
+                    node_name, ("⚙️", node_name)
+                )
                 progress_bar.progress(progress, text=f"{icon} {label}")
 
                 with log_container:
