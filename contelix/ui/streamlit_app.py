@@ -141,6 +141,18 @@ if run_button and topic:
     st.session_state.running = True
     st.session_state.messages = []
 
+    # 创建任务子目录
+    import os as _os
+    import re
+    from datetime import datetime
+    from contelix.config import get_output_dir
+    base = get_output_dir()
+    safe_topic = re.sub(r'[\\/*?:"<>|]', '', topic)[:30].strip()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    task_dir = base / f"{safe_topic}_{timestamp}"
+    task_dir.mkdir(parents=True, exist_ok=True)
+    _os.environ["CONTELIX_OUTPUT_DIR"] = str(task_dir)
+
     status_area = st.empty()
     progress_bar = st.progress(0, text="正在启动...")
     log_container = st.container()
@@ -234,7 +246,7 @@ if run_button and topic:
 
         st.success(f"✅ 研究完成! 话题: **{topic}**")
 
-        report_files = sorted(OUTPUT_DIR.glob("*"))
+        report_files = sorted(task_dir.glob("*"))
         if report_files:
             st.subheader("📁 生成的文件")
             for f in report_files:

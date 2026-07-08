@@ -87,8 +87,15 @@ def _run_research_task(task_id: str, request: ResearchRequest):
     if request.output_dir:
         os.environ["CONTELIX_OUTPUT_DIR"] = str(Path(request.output_dir).resolve())
 
-    output_path = get_output_dir()
+    # 为本次任务创建独立子目录
+    import re
+    from datetime import datetime
+    base = get_output_dir()
+    safe_topic = re.sub(r'[\\/*?:"<>|]', '', request.topic)[:30].strip()
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    output_path = base / f"{safe_topic}_{timestamp}"
     output_path.mkdir(parents=True, exist_ok=True)
+    os.environ["CONTELIX_OUTPUT_DIR"] = str(output_path)
 
     logger.info(
         "api.research_started",
