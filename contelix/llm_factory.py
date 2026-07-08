@@ -51,9 +51,3 @@ def get_llm(
                 max_retries=2,
             )
         return _llm_cache[cache_key]
-
-
-def reset_llm_cache() -> None:
-    """Clear the LLM instance cache. Useful for testing and model switching."""
-    with _cache_lock:
-        _llm_cache.clear()

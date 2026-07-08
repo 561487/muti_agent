@@ -37,7 +37,6 @@ if TAVILY_API_KEY:
 # ── Runtime Configuration ──────────────────────────────────────────────────
 MAX_RECURSION_LIMIT = int(os.getenv("CONTELIX_MAX_RECURSION", "150"))
 ENABLE_DEBUG = os.getenv("CONTELIX_DEBUG", "false").lower() == "true"
-ENABLE_HUMAN_REVIEW = os.getenv("CONTELIX_HUMAN_REVIEW", "true").lower() == "true"
 
 # ── Checkpoint / Persistence ────────────────────────────────────────────────
 CHECKPOINT_BACKEND = os.getenv("CONTELIX_CHECKPOINT_BACKEND", "memory")
@@ -97,4 +96,3 @@ def print_config():
     print(f"Tavily API Key: {'***' + TAVILY_API_KEY[-4:] if TAVILY_API_KEY else 'NOT SET'}")
     print(f"Output Dir: {OUTPUT_DIR}")
     print(f"Debug: {ENABLE_DEBUG}")
-    print(f"Human Review: {ENABLE_HUMAN_REVIEW}")

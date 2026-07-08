@@ -56,7 +56,15 @@ def _build_research_agents():
     return agents
 
 
-_AGENTS = _build_research_agents()
+_AGENTS = None
+
+
+def _get_agents():
+    """Lazy-initialize and cache agent instances."""
+    global _AGENTS
+    if _AGENTS is None:
+        _AGENTS = _build_research_agents()
+    return _AGENTS
 
 
 # ── Build the Research Team graph ──────────────────────────────────────────
@@ -88,7 +96,7 @@ def build_research_graph() -> StateGraph:
     for name in MEMBERS:
         builder.add_node(
             name,
-            make_agent_node(_AGENTS[name], name),
+            make_agent_node(_get_agents()[name], name),
             retry=AGENT_RETRY_POLICY,
         )
 

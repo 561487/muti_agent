@@ -7,7 +7,6 @@ on the research data gathered by the Research Team.
 
 from langgraph.graph import StateGraph, START
 from langgraph.prebuilt import create_react_agent
-from langchain_core.tools import tool
 
 from contelix.config import ENABLE_DEBUG
 from contelix.llm_factory import get_llm
@@ -17,29 +16,6 @@ from contelix.agents.node_factory import make_agent_node
 from contelix.state.schemas import AnalysisState
 from contelix.state.supervisor_factory import make_supervisor_node
 from contelix.tools.file_ops import write_document
-
-# ── Analysis-specific tools ────────────────────────────────────────────────
-
-
-@tool
-def save_analysis(
-    content: str,
-    analysis_type: str,
-) -> str:
-    """
-    Save an analysis result to a file.
-
-    Args:
-        content: The full analysis text.
-        analysis_type: Type of analysis ('swot', 'trend', 'comparison').
-
-    Returns:
-        Confirmation message.
-    """
-    filename = f"analysis_{analysis_type}.md"
-    result = write_document.invoke({"content": content, "file_name": filename})
-    return result
-
 
 # ── Member definitions ─────────────────────────────────────────────────────
 MEMBERS = ["swot_analyst", "trend_analyst", "comparison_analyst"]
@@ -56,7 +32,7 @@ MEMBER_SCHEMA = {
             "Be specific, evidence-based, and actionable. Use the research data "
             "provided to you. Format your analysis in clear markdown sections."
         ),
-        "tools": [save_analysis],
+        "tools": [write_document],
     },
     "trend_analyst": {
         "prompt": (
@@ -69,7 +45,7 @@ MEMBER_SCHEMA = {
             "Use the research data to support your analysis. Provide specific "
             "examples and data points. Format in clear markdown with bullet points."
         ),
-        "tools": [save_analysis],
+        "tools": [write_document],
     },
     "comparison_analyst": {
         "prompt": (
@@ -82,7 +58,7 @@ MEMBER_SCHEMA = {
             "Use the research data to make evidence-based comparisons. "
             "Format in clear markdown with comparison tables where helpful."
         ),
-        "tools": [save_analysis],
+        "tools": [write_document],
     },
 }
 
@@ -100,7 +76,15 @@ def _build_analysis_agents():
     return agents
 
 
-_AGENTS = _build_analysis_agents()
+_AGENTS = None
+
+
+def _get_agents():
+    """Lazy-initialize and cache agent instances."""
+    global _AGENTS
+    if _AGENTS is None:
+        _AGENTS = _build_analysis_agents()
+    return _AGENTS
 
 
 # ── Build the Analysis Team graph ──────────────────────────────────────────
@@ -132,7 +116,7 @@ def build_analysis_graph() -> StateGraph:
     for name in MEMBERS:
         builder.add_node(
             name,
-            make_agent_node(_AGENTS[name], name),
+            make_agent_node(_get_agents()[name], name),
             retry=AGENT_RETRY_POLICY,
         )
 

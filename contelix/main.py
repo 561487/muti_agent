@@ -104,7 +104,6 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
             else:
                 for node_name in event:
                     label = {
-                        "supervisor": "🧠 Routing...",
                         "research_team": "🔍 Researching...",
                         "analysis_team": "📊 Analyzing...",
                         "report_team": "📝 Writing report...",
@@ -164,6 +163,16 @@ def run_ui():
     subprocess.run([sys.executable, "-m", "streamlit", "run", str(ui_path)])
 
 
+def run_api():
+    """Launch the FastAPI server."""
+    import subprocess
+    print("🚀 Launching Contelix API on http://0.0.0.0:8000 ...")
+    subprocess.run(
+        [sys.executable, "-m", "uvicorn", "contelix.api.app:app",
+         "--host", "0.0.0.0", "--port", "8000"]
+    )
+
+
 def main():
     """CLI entry point for Contelix."""
     configure_logging()
@@ -177,6 +186,7 @@ Examples:
   contelix research "Cloud computing market 2024" --verbose
   contelix research "AI code assistant tools comparison" --output ./reports
   contelix run-ui
+  contelix run-api
         """,
     )
 
@@ -199,12 +209,17 @@ Examples:
     # run-ui subcommand
     subparsers.add_parser("run-ui", help="Launch the Streamlit web UI")
 
+    # run-api subcommand
+    subparsers.add_parser("run-api", help="Launch the FastAPI server")
+
     args = parser.parse_args()
 
     if args.command == "research":
         run_research(args.topic, verbose=args.verbose, output_dir=args.output)
     elif args.command == "run-ui":
         run_ui()
+    elif args.command == "run-api":
+        run_api()
     else:
         parser.print_help()
         sys.exit(1)

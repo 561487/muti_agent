@@ -40,9 +40,6 @@ def make_supervisor_node(
     member_list = ", ".join(members)
     finish_literal = "FINISH"
 
-    # Build the literal type for structured output
-    RouteOptions = Literal[tuple(members + [finish_literal])]  # noqa
-
     if system_prompt is None:
         system_prompt = (
             f"You are a supervisor managing a team of specialists: {member_list}.\n\n"

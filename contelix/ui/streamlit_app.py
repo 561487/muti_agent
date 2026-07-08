@@ -56,7 +56,6 @@ st.markdown("""
 .agent-research { background-color: #e3f2fd; border-left: 4px solid #2196f3; }
 .agent-analysis { background-color: #f3e5f5; border-left: 4px solid #9c27b0; }
 .agent-report { background-color: #e8f5e9; border-left: 4px solid #4caf50; }
-.agent-supervisor { background-color: #fff3e0; border-left: 4px solid #ff9800; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -156,7 +155,6 @@ if run_button and topic:
 
     # Run the pipeline with streaming
     phase_map = {
-        "supervisor": ("🧠", "Supervisor routing..."),
         "research_team": ("🔍", "Researching (web search + scraping)..."),
         "analysis_team": ("📊", "Analyzing (SWOT + trends + comparison)..."),
         "report_team": ("📝", "Writing report (outline + content + charts)..."),
@@ -183,7 +181,6 @@ if run_button and topic:
                         "research_team": "agent-research",
                         "analysis_team": "agent-analysis",
                         "report_team": "agent-report",
-                        "supervisor": "agent-supervisor",
                     }.get(node_name, "")
 
                     if isinstance(node_output, dict) and show_details:

@@ -51,8 +51,3 @@ def configure_logging() -> None:
         format="%(message)s",
         stream=sys.stderr,
     )
-
-
-def get_logger(name: str = None):
-    """Get a structlog logger for the given module name."""
-    return structlog.get_logger(name or __name__)
