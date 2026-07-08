@@ -88,6 +88,10 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
             config,
             subgraphs=True,
         ):
+            # LangGraph 1.x with subgraphs=True returns (namespace, event) tuples
+            if isinstance(event, tuple) and len(event) == 2:
+                _, event = event
+
             if verbose:
                 for node_name, node_output in event.items():
                     if isinstance(node_output, dict):

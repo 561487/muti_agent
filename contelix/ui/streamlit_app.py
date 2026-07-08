@@ -164,11 +164,19 @@ if run_button and topic:
     total_phases = 4
 
     try:
+        import uuid
         for event in graph.stream(
             {"topic": topic, "messages": [{"role": "user", "content": topic}]},
-            {"recursion_limit": recursion},
+            {
+                "configurable": {"thread_id": str(uuid.uuid4())[:8]},
+                "recursion_limit": recursion,
+            },
             subgraphs=True,
         ):
+            # LangGraph 1.x with subgraphs=True returns (namespace, event) tuples
+            if isinstance(event, tuple) and len(event) == 2:
+                _, event = event
+
             event_index += 1
             progress = min(event_index / (total_phases * 3), 0.95)
 
