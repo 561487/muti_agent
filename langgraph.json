@@ -1,0 +1,11 @@
+{
+    "dependencies": ["."],
+    "graphs": {
+        "research": "./contelix/agents/supervisor.py:build_top_graph",
+        "research_team": "./contelix/agents/research/supervisor.py:build_research_graph",
+        "analysis_team": "./contelix/agents/analysis/supervisor.py:build_analysis_graph",
+        "report_team": "./contelix/agents/reporting/supervisor.py:build_report_graph"
+    },
+    "env": ".env",
+    "python_version": "3.11"
+}

@@ -1,0 +1,33 @@
+version: "3.8"
+
+services:
+  contelix:
+    build: .
+    container_name: contelix
+    ports:
+      - "8501:8501"
+    env_file:
+      - .env
+    environment:
+      - CONTELIX_OUTPUT_DIR=/app/output
+    volumes:
+      - ./output:/app/output
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+
+  # Optional: CLI-only mode for one-shot research tasks
+  contelix-cli:
+    build: .
+    container_name: contelix-cli
+    env_file:
+      - .env
+    environment:
+      - CONTELIX_OUTPUT_DIR=/app/output
+    volumes:
+      - ./output:/app/output
+      - ./.env:/app/.env:ro
+    entrypoint: ["python", "-m", "contelix.main"]
+    # Override command to run a specific research task:
+    # command: research "Tesla EV market analysis" --verbose
+    profiles:
+      - cli

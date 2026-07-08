@@ -1,0 +1,36 @@
+[project]
+name = "contelix"
+version = "0.1.0"
+description = "AI-Powered Competitive Intelligence Automation Platform"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "langgraph>=1.0.0",
+    "langchain>=0.3.0",
+    "langchain-openai>=0.2.0",
+    "langchain-community>=0.3.0",
+    "langchain-tavily",
+    "langchain-experimental>=0.3.0",
+    "langgraph-checkpoint>=2.0.0",
+    "langgraph-checkpoint-sqlite>=2.0.0",
+    "beautifulsoup4>=4.12.0",
+    "lxml>=5.0.0",
+    "requests>=2.31.0",
+    "pandas>=2.0.0",
+    "matplotlib>=3.7.0",
+    "numpy>=1.24.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "streamlit>=1.30.0",
+    "aiosqlite>=0.20.0",
+    "bleach>=6.0.0",
+    "structlog>=24.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.32.0",
+]
+
+[project.scripts]
+contelix = "contelix.main:main"
+
+[tool.setuptools.packages.find]
+include = ["contelix*"]

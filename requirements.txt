@@ -1,0 +1,47 @@
+# Contelix — AI Competitive Intelligence Platform
+# Core Agent Framework
+langgraph>=0.2.0
+langchain>=0.3.0
+langchain-openai>=0.2.0
+langchain-community>=0.3.0
+langchain-experimental>=0.3.0
+
+# Web Search & Scraping
+langchain-tavily
+beautifulsoup4>=4.12.0
+lxml>=5.0.0
+requests>=2.31.0
+
+# Data & Visualization
+pandas>=2.0.0
+matplotlib>=3.7.0
+numpy>=1.24.0
+
+# LLM Structured Output
+pydantic>=2.0.0
+
+# Environment Management
+python-dotenv>=1.0.0
+
+# Web UI
+streamlit>=1.30.0
+
+# Security
+bleach>=6.0.0
+
+# Observability
+structlog>=24.0.0
+
+# Checkpoint Persistence
+aiosqlite>=0.20.0
+
+# Optional: Vector DB for caching research
+# chromadb>=0.5.0
+
+# API Server
+fastapi>=0.115.0
+uvicorn[standard]>=0.32.0
+
+# Development
+pytest>=8.0.0
+pytest-asyncio>=0.24.0
