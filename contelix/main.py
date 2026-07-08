@@ -25,7 +25,7 @@ import structlog
 from contelix.config import (
     validate_config,
     print_config,
-    get_output_dir,
+    create_task_dir,
     MAX_RECURSION_LIMIT,
     ENABLE_DEBUG,
 )
@@ -33,19 +33,6 @@ from contelix.logging_config import configure_logging
 from contelix.agents.supervisor import build_top_graph
 
 logger = structlog.get_logger(__name__)
-
-
-def _make_task_dir(topic: str) -> Path:
-    """为当前任务创建输出子目录，名称基于话题和时间戳。"""
-    import re
-    from datetime import datetime
-    base = get_output_dir()
-    # 取话题前 30 个字符，去掉非法文件名字符
-    safe_topic = re.sub(r'[\\/*?:"<>|]', '', topic)[:30].strip()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    task_dir = base / f"{safe_topic}_{timestamp}"
-    task_dir.mkdir(parents=True, exist_ok=True)
-    return task_dir
 
 
 def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = None):
@@ -56,9 +43,7 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
     if output_dir:
         os.environ["CONTELIX_OUTPUT_DIR"] = str(Path(output_dir).resolve())
 
-    # 为本次任务创建独立子目录
-    output_path = _make_task_dir(topic)
-    os.environ["CONTELIX_OUTPUT_DIR"] = str(output_path)
+    output_path = create_task_dir(topic)
 
     logger.info("research_started", topic=topic, output_dir=str(output_path))
 

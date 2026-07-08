@@ -42,16 +42,14 @@ def make_supervisor_node(
 
     if system_prompt is None:
         system_prompt = (
-            f"You are a supervisor managing a team of specialists: {member_list}.\n\n"
-            "Your job is to route the conversation to the right specialist based on "
-            "the user's request and the current progress.\n\n"
-            "Rules:\n"
-            f"1. Each specialist will perform ONE task and report back with results.\n"
-            f"2. Route to the specialist whose expertise best matches what's needed next.\n"
-            f"3. When ALL tasks are complete, respond with '{finish_literal}'.\n"
-            f"4. DO NOT delegate to a specialist that has already completed its task "
-            f"unless new information requires it.\n\n"
-            "Respond with a JSON object: {{\"next\": \"specialist_name\"}}"
+            f"你是一个 Supervisor，管理以下专家团队: {member_list}。\n\n"
+            "你的职责是根据用户请求和当前进展，将任务路由给最合适的专家。\n\n"
+            "规则:\n"
+            f"1. 每个专家每次只执行一个任务，完成后汇报结果。\n"
+            f"2. 将任务路由给专业最匹配的专家。\n"
+            f"3. 所有任务完成后，回复 '{finish_literal}'。\n"
+            f"4. 除非有新的需求，不要重复委派已经完成任务的专家。\n\n"
+            "请返回 JSON 格式: {{\"next\": \"specialist_name\"}}"
         )
 
     class Router(TypedDict):

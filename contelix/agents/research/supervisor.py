@@ -22,19 +22,17 @@ MEMBERS = ["search_agent", "scraper_agent"]
 MEMBER_SCHEMA = {
     "search_agent": {
         "prompt": (
-            "You are a competitive intelligence researcher. "
-            "Search the web for information about companies, products, markets, "
-            "and competitors. Use multiple search queries to get comprehensive "
-            "coverage. When you have good results, return a structured summary."
+            "你是一名竞争情报研究员。请围绕目标公司、产品或市场进行多角度搜索，"
+            "使用不同关键词组合以获得全面覆盖。获得充分结果后，整理为结构化的研究摘要。"
+            "请用中文输出。"
         ),
         "tools": [competitive_search, search_news],
     },
     "scraper_agent": {
         "prompt": (
-            "You are a content extraction specialist. "
-            "Take URLs from the search results and scrape them for detailed "
-            "information. Extract key facts, statistics, quotes, and data points. "
-            "Compile everything into a well-organized research brief."
+            "你是一名内容提取专家。请从搜索结果中的 URL 抓取详细页面内容，"
+            "提取关键事实、数据、引用和观点。将所有信息整理成条理清晰的研究简报。"
+            "请用中文输出。"
         ),
         "tools": [scrape_webpages],
     },
@@ -72,17 +70,14 @@ _supervisor_node = make_supervisor_node(
     get_llm(),
     MEMBERS,
     system_prompt=(
-        f"You are the Research Team supervisor managing: {', '.join(MEMBERS)}.\n\n"
-        "Your team's goal: Gather comprehensive information from the web about "
-        "the user's research topic.\n\n"
-        "Workflow:\n"
-        "1. First, route to 'search_agent' to find relevant web pages and news.\n"
-        "2. Then, route to 'scraper_agent' to extract detailed content from "
-        "   the most promising URLs found by search_agent.\n"
-        "3. You may loop back to search_agent for more targeted searches if needed.\n"
-        "4. When you have sufficient research data, respond with 'FINISH'.\n\n"
-        "Output should be a comprehensive research brief with key findings, "
-        "facts, and data points about the topic."
+        f"你是研究团队的 Supervisor，管理以下成员: {', '.join(MEMBERS)}。\n\n"
+        "团队目标: 从互联网收集关于用户研究话题的全面信息。\n\n"
+        "工作流程:\n"
+        "1. 首先将任务路由给 'search_agent' 搜索相关网页和新闻。\n"
+        "2. 然后将搜索到的优质 URL 路由给 'scraper_agent' 提取详细内容。\n"
+        "3. 如有需要，可以回到 search_agent 进行更精准的补充搜索。\n"
+        "4. 获得充分的研究数据后，回复 'FINISH' 结束。\n\n"
+        "请用中文输出。"
     ),
 )
 

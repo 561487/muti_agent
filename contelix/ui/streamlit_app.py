@@ -141,17 +141,8 @@ if run_button and topic:
     st.session_state.running = True
     st.session_state.messages = []
 
-    # 创建任务子目录
-    import os as _os
-    import re
-    from datetime import datetime
-    from contelix.config import get_output_dir
-    base = get_output_dir()
-    safe_topic = re.sub(r'[\\/*?:"<>|]', '', topic)[:30].strip()
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    task_dir = base / f"{safe_topic}_{timestamp}"
-    task_dir.mkdir(parents=True, exist_ok=True)
-    _os.environ["CONTELIX_OUTPUT_DIR"] = str(task_dir)
+    from contelix.config import create_task_dir
+    task_dir = create_task_dir(topic)
 
     status_area = st.empty()
     progress_bar = st.progress(0, text="正在启动...")

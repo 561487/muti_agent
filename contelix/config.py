@@ -10,7 +10,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 # Load .env file from project root or current directory
-load_dotenv()
+load_dotenv(PROJECT_ROOT / ".env")
 
 # ── Project Paths ──────────────────────────────────────────────────────────
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
@@ -70,6 +70,27 @@ def get_output_dir() -> Path:
     out = Path(os.getenv("CONTELIX_OUTPUT_DIR", PROJECT_ROOT / "output"))
     out.mkdir(parents=True, exist_ok=True)
     return out
+
+
+def create_task_dir(topic: str) -> Path:
+    """为研究任务创建独立的输出子目录。
+
+    目录名格式: <话题前30字符>_<时间戳>
+
+    Args:
+        topic: 研究话题，用于生成目录名。
+
+    Returns:
+        创建好的任务输出目录路径。
+    """
+    import re
+    from datetime import datetime
+    safe = re.sub(r'[\\/*?:"<>|]', '', topic)[:30].strip()
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    task_dir = get_output_dir() / f"{safe}_{ts}"
+    task_dir.mkdir(parents=True, exist_ok=True)
+    os.environ["CONTELIX_OUTPUT_DIR"] = str(task_dir)
+    return task_dir
 
 
 def validate_config() -> bool:

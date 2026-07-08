@@ -49,5 +49,6 @@ def get_llm(
                 api_key=MODEL_API_KEY,
                 temperature=temperature if temperature is not None else MODEL_TEMPERATURE,
                 max_retries=2,
+                request_timeout=120,
             )
         return _llm_cache[cache_key]

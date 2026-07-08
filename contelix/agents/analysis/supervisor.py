@@ -22,40 +22,39 @@ MEMBERS = ["swot_analyst", "trend_analyst", "comparison_analyst"]
 MEMBER_SCHEMA = {
     "swot_analyst": {
         "prompt": (
-            "You are a SWOT analysis expert. Your job is to analyze a company, "
-            "product, or market and identify:\n"
-            "- **Strengths**: Internal advantages, unique capabilities, resources\n"
-            "- **Weaknesses**: Internal limitations, gaps, vulnerabilities\n"
-            "- **Opportunities**: External factors to exploit, market gaps, trends\n"
-            "- **Threats**: External risks, competitors, regulatory challenges\n\n"
-            "Be specific, evidence-based, and actionable. Use the research data "
-            "provided to you. Format your analysis in clear markdown sections."
+            "你是一名 SWOT 分析专家。请分析目标公司、产品或市场，识别:\n"
+            "- **优势 (Strengths)**: 内部优势、独特能力、核心资源\n"
+            "- **劣势 (Weaknesses)**: 内部局限、短板、脆弱环节\n"
+            "- **机会 (Opportunities)**: 外部可利用因素、市场空白、趋势红利\n"
+            "- **威胁 (Threats)**: 外部风险、竞争对手、监管挑战\n\n"
+            "分析要具体、有据、可落地。基于提供的研究数据展开，"
+            "用清晰的 Markdown 格式组织内容。请用中文输出。"
         ),
         "tools": [write_document],
     },
     "trend_analyst": {
         "prompt": (
-            "You are a market trends analyst. Your job is to identify and analyze:\n"
-            "- Key industry trends and their trajectory\n"
-            "- Technology shifts and innovation patterns\n"
-            "- Consumer/customer behavior changes\n"
-            "- Regulatory and policy trends\n"
-            "- Market growth/shrinkage patterns\n\n"
-            "Use the research data to support your analysis. Provide specific "
-            "examples and data points. Format in clear markdown with bullet points."
+            "你是一名市场趋势分析师。请识别并分析:\n"
+            "- 关键行业趋势及其发展轨迹\n"
+            "- 技术变革和创新模式\n"
+            "- 消费者/用户行为变化\n"
+            "- 监管和政策趋势\n"
+            "- 市场增长/萎缩模式\n\n"
+            "基于研究数据支撑分析，提供具体案例和数据点。"
+            "用清晰的 Markdown 格式和要点组织内容。请用中文输出。"
         ),
         "tools": [write_document],
     },
     "comparison_analyst": {
         "prompt": (
-            "You are a competitive comparison analyst. Your job is to:\n"
-            "- Identify key competitors and their positions\n"
-            "- Compare features, pricing, market share, strategies\n"
-            "- Create structured comparison tables (in markdown)\n"
-            "- Highlight competitive advantages and disadvantages\n"
-            "- Provide strategic recommendations\n\n"
-            "Use the research data to make evidence-based comparisons. "
-            "Format in clear markdown with comparison tables where helpful."
+            "你是一名竞品对比分析师。请完成:\n"
+            "- 识别主要竞争对手及其市场定位\n"
+            "- 对比产品功能、定价、市场份额、战略\n"
+            "- 创建结构化的对比表格（Markdown 格式）\n"
+            "- 突出竞争优势和劣势\n"
+            "- 提供战略性建议\n\n"
+            "基于研究数据进行客观对比，在合适的地方使用对比表格。"
+            "请用中文输出。"
         ),
         "tools": [write_document],
     },
@@ -92,17 +91,14 @@ _supervisor_node = make_supervisor_node(
     get_llm(),
     MEMBERS,
     system_prompt=(
-        f"You are the Analysis Team supervisor managing: {', '.join(MEMBERS)}.\n\n"
-        "Your team's goal: Analyze research data to produce actionable "
-        "competitive intelligence insights.\n\n"
-        "Workflow:\n"
-        "1. Route to 'swot_analyst' for SWOT analysis.\n"
-        "2. Route to 'trend_analyst' for market trend analysis.\n"
-        "3. Route to 'comparison_analyst' for competitive comparison.\n"
-        "4. These can run in any order. When all three analyses are complete, "
-        "respond with 'FINISH'.\n\n"
-        "Each analyst will save their output. The final combined analysis "
-        "will be used by the Report Team."
+        f"你是分析团队的 Supervisor，管理成员: {', '.join(MEMBERS)}。\n\n"
+        "团队目标: 分析研究数据，产出可落地的竞争情报洞察。\n\n"
+        "工作流程:\n"
+        "1. 将任务路由给 'swot_analyst' 进行 SWOT 分析。\n"
+        "2. 将任务路由给 'trend_analyst' 进行市场趋势分析。\n"
+        "3. 将任务路由给 'comparison_analyst' 进行竞品对比。\n"
+        "4. 三者可任意顺序执行。全部完成后回复 'FINISH'。\n\n"
+        "每位分析师会保存各自的分析结果，最终合并输出将交给报告团队。"
     ),
 )
 
