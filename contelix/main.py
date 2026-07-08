@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-Contelix — AI-Powered Competitive Intelligence Automation Platform.
+Contelix — AI 竞争情报自动化平台.
 
-Usage:
-    contelix research "Tesla's competitive position in EV market"
-    contelix research "OpenAI GPT-5 strategy" --output ./my_reports
-    contelix research "Cloud market AWS vs Azure vs GCP" --verbose
-    contelix run-ui                          # Launch Streamlit web UI
+用法:
+    python -m contelix.main research "研究话题"
+    python -m contelix.main research "研究话题" --verbose
+    python -m contelix.main research "研究话题" --output ./my_reports
+    python -m contelix.main run-ui
+    python -m contelix.main run-api
 
-Environment:
-    Set CONTELIX_MODEL_API_KEY and search API keys, or copy .env.example to .env.
+环境配置:
+    设置 CONTELIX_MODEL_API_KEY 和搜索 API Key，或复制 .env.example 到 .env。
 """
 
 import argparse
@@ -35,46 +36,32 @@ logger = structlog.get_logger(__name__)
 
 
 def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = None):
-    """
-    Run a competitive intelligence research task.
-
-    Args:
-        topic: The research topic/query.
-        verbose: If True, print detailed agent progress.
-        output_dir: Optional custom output directory.
-    """
+    """运行竞争情报研究任务。"""
     if not validate_config():
         sys.exit(1)
 
-    # Set custom output directory before getting the resolved path
     if output_dir:
         os.environ["CONTELIX_OUTPUT_DIR"] = str(Path(output_dir).resolve())
 
     output_path = get_output_dir()
     output_path.mkdir(parents=True, exist_ok=True)
 
-    logger.info(
-        "research_started",
-        topic=topic,
-        output_dir=str(output_path),
-    )
+    logger.info("research_started", topic=topic, output_dir=str(output_path))
 
     print("=" * 60)
-    print("  Contelix — Competitive Intelligence Platform")
+    print("  Contelix — 竞争情报 AI 平台")
     print("=" * 60)
-    print(f"\n📋 Research Topic: {topic}")
-    print(f"📁 Output Directory: {output_path}")
+    print(f"\n📋 研究话题: {topic}")
+    print(f"📁 输出目录: {output_path}")
     if verbose:
         print_config()
     print()
 
-    # Build the orchestration graph
     logger.info("building_pipeline")
-    print("🏗️  Building multi-agent pipeline...")
+    print("🏗️  正在构建多智能体协作管线...")
     graph = build_top_graph()
 
-    # Run the pipeline
-    print("🚀 Starting research pipeline...\n")
+    print("🚀 启动研究管线...\n")
     print("-" * 60)
 
     config = {
@@ -88,7 +75,6 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
             config,
             subgraphs=True,
         ):
-            # LangGraph 1.x with subgraphs=True returns (namespace, event) tuples
             if isinstance(event, tuple) and len(event) == 2:
                 _, event = event
 
@@ -112,28 +98,27 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
             else:
                 for node_name in event:
                     label = {
-                        "research_team": "🔍 Researching...",
-                        "analysis_team": "📊 Analyzing...",
-                        "report_team": "📝 Writing report...",
+                        "research_team": "🔍 搜索中...",
+                        "analysis_team": "📊 分析中...",
+                        "report_team": "📝 写报告中...",
                     }.get(node_name, f"⚙️  {node_name}")
                     print(label)
 
         print("-" * 60)
-        print(f"\n✅ Research complete!")
-        print(f"📁 Output saved to: {output_path}")
+        print(f"\n✅ 研究完成!")
+        print(f"📁 输出目录: {output_path}")
 
-        # Check for generated files
         report_files = list(output_path.glob("*.md"))
         chart_files = list(output_path.glob("*.png"))
 
         if report_files:
-            print(f"\n📄 Generated Reports:")
+            print(f"\n📄 生成的报告:")
             for f in report_files:
                 size_kb = f.stat().st_size / 1024
                 print(f"   - {f.name} ({size_kb:.1f} KB)")
 
         if chart_files:
-            print(f"\n📊 Generated Charts:")
+            print(f"\n📊 生成的图表:")
             for f in chart_files:
                 print(f"   - {f.name}")
 
@@ -143,15 +128,15 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
             report_count=len(report_files),
             chart_count=len(chart_files),
         )
-        print("\nDone! 🎉")
+        print("\n完成! 🎉")
 
     except KeyboardInterrupt:
         logger.info("research_interrupted", topic=topic)
-        print("\n⚠️  Interrupted by user.")
+        print("\n⚠️  用户中断。")
         sys.exit(1)
     except Exception as e:
         logger.error("research_failed", topic=topic, error=str(e))
-        print(f"\n❌ Error: {e}")
+        print(f"\n❌ 错误: {e}")
         if ENABLE_DEBUG:
             import traceback
             traceback.print_exc()
@@ -159,22 +144,22 @@ def run_research(topic: str, verbose: bool = False, output_dir: Optional[str] = 
 
 
 def run_ui():
-    """Launch the Streamlit web UI."""
+    """启动 Streamlit Web 界面。"""
     import subprocess
     ui_path = Path(__file__).parent / "ui" / "streamlit_app.py"
 
     if not ui_path.exists():
-        print(f"❌ UI file not found: {ui_path}")
+        print(f"❌ 找不到 UI 文件: {ui_path}")
         sys.exit(1)
 
-    print("🚀 Launching Contelix Web UI...")
+    print("🚀 正在启动 Contelix Web 界面...")
     subprocess.run([sys.executable, "-m", "streamlit", "run", str(ui_path)])
 
 
 def run_api():
-    """Launch the FastAPI server."""
+    """启动 FastAPI 服务。"""
     import subprocess
-    print("🚀 Launching Contelix API on http://0.0.0.0:8000 ...")
+    print("🚀 正在启动 Contelix API → http://0.0.0.0:8000 ...")
     subprocess.run(
         [sys.executable, "-m", "uvicorn", "contelix.api.app:app",
          "--host", "0.0.0.0", "--port", "8000"]
@@ -182,43 +167,43 @@ def run_api():
 
 
 def main():
-    """CLI entry point for Contelix."""
+    """CLI 入口。"""
     configure_logging()
 
     parser = argparse.ArgumentParser(
-        description="Contelix — AI-Powered Competitive Intelligence Platform",
+        description="Contelix — AI 竞争情报自动化平台",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Examples:
-  contelix research "Tesla EV competitive analysis"
-  contelix research "Cloud computing market 2024" --verbose
-  contelix research "AI code assistant tools comparison" --output ./reports
-  contelix run-ui
-  contelix run-api
+示例:
+  python -m contelix.main research "特斯拉电动车竞争力分析"
+  python -m contelix.main research "云计算市场 AWS vs 阿里云" --verbose
+  python -m contelix.main research "AI 编程助手对比" --output ./reports
+  python -m contelix.main run-ui
+  python -m contelix.main run-api
         """,
     )
 
-    subparsers = parser.add_subparsers(dest="command", help="Available commands")
+    subparsers = parser.add_subparsers(dest="command", help="可用命令")
 
-    # research subcommand
-    research_parser = subparsers.add_parser("research", help="Run a research task")
-    research_parser.add_argument("topic", help="Research topic or question")
+    # research 子命令
+    research_parser = subparsers.add_parser("research", help="运行研究任务")
+    research_parser.add_argument("topic", help="研究话题或问题")
     research_parser.add_argument(
         "--output", "-o",
         default=None,
-        help="Output directory for reports (default: ./output)",
+        help="报告输出目录（默认: ./output）",
     )
     research_parser.add_argument(
         "--verbose", "-v",
         action="store_true",
-        help="Show detailed agent progress",
+        help="显示详细的 Agent 执行过程",
     )
 
-    # run-ui subcommand
-    subparsers.add_parser("run-ui", help="Launch the Streamlit web UI")
+    # run-ui 子命令
+    subparsers.add_parser("run-ui", help="启动 Streamlit Web 界面")
 
-    # run-api subcommand
-    subparsers.add_parser("run-api", help="Launch the FastAPI server")
+    # run-api 子命令
+    subparsers.add_parser("run-api", help="启动 FastAPI 服务")
 
     args = parser.parse_args()
 

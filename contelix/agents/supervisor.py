@@ -52,11 +52,10 @@ def call_research_team(state: OverallState) -> dict:
             "messages": [
                 HumanMessage(
                     content=(
-                        f"Research the following topic comprehensively: {state['topic']}\n\n"
-                        "Search for news, competitor information, market data, product "
-                        "details, financial information, and industry trends. Gather as "
-                        "much relevant data as possible. When done, compile a detailed "
-                        "research brief."
+                        f"请全面研究以下话题：{state['topic']}\n\n"
+                        "搜索相关新闻、竞争对手信息、市场数据、产品细节、财务信息和行业趋势。"
+                        "尽可能收集多的相关数据。完成后，整理一份详细的研究简报。"
+                        "请用中文输出。"
                     )
                 )
             ]
@@ -91,10 +90,11 @@ def call_analysis_team(state: OverallState) -> dict:
             "messages": [
                 HumanMessage(
                     content=(
-                        f"Analyze the following research data on '{state['topic']}':\n\n"
+                        f"请分析以下关于'{state['topic']}'的研究数据：\n\n"
                         f"{research_content}\n\n"
-                        "Perform: 1) SWOT analysis, 2) Market trend analysis, "
-                        "3) Competitive comparison. Be thorough and evidence-based."
+                        "请完成：1) SWOT 分析，2) 市场趋势分析，"
+                        "3) 竞争对手对比分析。务必深入、有理有据。"
+                        "请用中文输出。"
                     )
                 )
             ]
@@ -130,12 +130,13 @@ def call_report_team(state: OverallState) -> dict:
                 "messages": [
                     HumanMessage(
                         content=(
-                            f"Create a professional competitive intelligence report "
-                            f"on the topic: '{state['topic']}'.\n\n"
-                            f"Analysis data to use:\n{analysis_content}\n\n"
-                            "Create: 1) Report outline, 2) Full report content in markdown, "
-                            "3) Relevant charts/visualizations, 4) Final editing pass. "
-                            "Save the final report as 'competitive_intelligence_report.md'."
+                            f"请基于分析数据撰写专业竞争情报报告，"
+                            f"主题: '{state['topic']}'。\n\n"
+                            f"分析数据:\n{analysis_content}\n\n"
+                            "请完成: 1) 报告大纲，2) 完整报告(Markdown)，"
+                            "3) 图表可视化，4) 最终编辑润色。"
+                            "保存为 'competitive_intelligence_report.md'。"
+                            "请用中文输出。"
                         )
                     )
                 ]
@@ -147,7 +148,7 @@ def call_report_team(state: OverallState) -> dict:
         return {
             "messages": [
                 HumanMessage(
-                    content="[report_team] Failed to generate report. See logs for details.",
+                    content="[report_team] 报告生成失败，请查看日志了解详情。",
                     name="report_team",
                 )
             ],

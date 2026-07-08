@@ -1,18 +1,19 @@
 """
-Contelix Streamlit Web UI — interactive competitive intelligence research.
+Contelix Streamlit Web UI — 竞争情报交互式研究界面.
 
-Run with:
+启动方式:
     streamlit run contelix/ui/streamlit_app.py
-    or: contelix run-ui
+    或: contelix run-ui
 """
 
 import sys
+import uuid
 from pathlib import Path
 
 import bleach
 import streamlit as st
 
-# Allowed HTML tags and attributes for sanitized agent output
+# HTML 标签白名单（XSS 防护）
 _ALLOWED_TAGS = [
     "b", "i", "strong", "em", "code", "pre",
     "div", "span", "br", "p", "ul", "ol", "li", "a",
@@ -24,7 +25,7 @@ _ALLOWED_ATTRS = {
     "a": ["href", "title"],
 }
 
-# Ensure the project root is on the path
+# 确保项目根目录在路径中
 project_root = Path(__file__).parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -36,15 +37,15 @@ from contelix.config import (
 )
 from contelix.agents.supervisor import build_top_graph
 
-# ── Page config ────────────────────────────────────────────────────────────
+# ── 页面配置 ────────────────────────────────────────────────────────────────
 st.set_page_config(
-    page_title="Contelix — Competitive Intelligence",
+    page_title="Contelix — 竞争情报 AI 平台",
     page_icon="🔍",
     layout="wide",
     initial_sidebar_state="expanded",
 )
 
-# ── Styles ─────────────────────────────────────────────────────────────────
+# ── 样式 ─────────────────────────────────────────────────────────────────────
 st.markdown("""
 <style>
 .agent-msg {
@@ -59,7 +60,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ── Session state ──────────────────────────────────────────────────────────
+# ── 会话状态 ────────────────────────────────────────────────────────────────
 if "messages" not in st.session_state:
     st.session_state.messages = []
 if "running" not in st.session_state:
@@ -67,104 +68,99 @@ if "running" not in st.session_state:
 if "graph" not in st.session_state:
     st.session_state.graph = None
 
-# ── Sidebar ────────────────────────────────────────────────────────────────
+# ── 侧边栏 ──────────────────────────────────────────────────────────────────
 with st.sidebar:
     st.title("🔍 Contelix")
-    st.caption("AI-Powered Competitive Intelligence")
+    st.caption("AI 竞争情报自动化平台")
 
     st.divider()
 
-    # API status
+    # API 状态
     if validate_config():
-        st.success("✅ API configured")
+        st.success("✅ API 已配置")
     else:
-        st.error("⚠️ API keys missing")
-        st.caption("Set env vars or create .env file")
+        st.error("⚠️ API Key 缺失")
+        st.caption("请配置环境变量或创建 .env 文件")
 
     st.divider()
 
-    # Settings
-    st.subheader("⚙️ Settings")
-    recursion = st.slider("Max steps", 50, 300, MAX_RECURSION_LIMIT, step=10)
-    show_details = st.checkbox("Show agent details", value=True)
+    # 设置
+    st.subheader("⚙️ 设置")
+    recursion = st.slider("最大步数", 50, 300, MAX_RECURSION_LIMIT, step=10)
+    show_details = st.checkbox("显示 Agent 详情", value=True)
 
     st.divider()
 
-    # Info
-    st.subheader("ℹ️ About")
+    # 关于
+    st.subheader("ℹ️ 关于")
     st.markdown("""
-    **Contelix** uses a multi-agent AI system to:
-    1. 🔍 **Research** — Search the web
-    2. 📊 **Analyze** — SWOT, trends, comparison
-    3. 📝 **Report** — Professional report
+    **Contelix** 使用多智能体 AI 系统完成:
+    1. 🔍 **搜索** — 全网搜索资料
+    2. 📊 **分析** — SWOT / 趋势 / 竞品对比
+    3. 📝 **报告** — 生成专业报告
 
-    Built with LangGraph + Qwen2.5
+    基于 LangGraph + Qwen2.5 构建
     """)
 
     st.divider()
 
-    st.caption(f"Output: `{OUTPUT_DIR}`")
+    st.caption(f"输出目录: `{OUTPUT_DIR}`")
 
-# ── Main UI ────────────────────────────────────────────────────────────────
-st.title("🔍 Competitive Intelligence Research")
-st.caption("Enter a company, product, or industry to research. "
-           "The AI agent team will search, analyze, and produce a report.")
+# ── 主界面 ──────────────────────────────────────────────────────────────────
+st.title("🔍 竞争情报研究")
+st.caption("输入一个公司、产品或行业话题，AI 智能体团队将自动搜索、分析并生成报告。")
 
-# Input area
+# 输入区
 col1, col2 = st.columns([5, 1])
 with col1:
     topic = st.text_input(
-        "Research Topic",
-        placeholder="e.g., Tesla's competitive position in the global EV market",
+        "研究话题",
+        placeholder="例如：特斯拉在全球电动车市场的竞争地位",
         label_visibility="collapsed",
         key="topic_input",
     )
 with col2:
-    run_button = st.button("🚀 Research", type="primary", use_container_width=True)
+    run_button = st.button("🚀 开始研究", type="primary", use_container_width=True)
 
-# Example topics
-with st.expander("💡 Example topics"):
+# 示例话题
+with st.expander("💡 示例话题"):
     st.markdown("""
-    - Tesla's competitive position in the global EV market
-    - OpenAI vs Google vs Anthropic AI strategy comparison
-    - Cloud infrastructure market: AWS vs Azure vs GCP in 2024
-    - Apple Vision Pro competitive landscape and market impact
-    - Stripe vs Adyen vs Square: payment platform comparison
+    - 特斯拉在全球电动车市场的竞争地位
+    - OpenAI、Google、Anthropic AI 战略对比
+    - 云计算市场：AWS vs 阿里云 vs 华为云
+    - Apple Vision Pro 竞争格局与市场影响
+    - 支付平台对比：支付宝 vs 微信支付 vs Stripe
     """)
 
-# ── Run research ───────────────────────────────────────────────────────────
+# ── 执行研究 ────────────────────────────────────────────────────────────────
 if run_button and topic:
     if not validate_config():
-        st.error("⚠️ API keys not configured. Set CONTELIX_MODEL_API_KEY and search keys.")
+        st.error("⚠️ API Key 未配置，请设置 CONTELIX_MODEL_API_KEY 和搜索 Key。")
         st.stop()
 
     st.session_state.running = True
     st.session_state.messages = []
 
-    # Progress containers
     status_area = st.empty()
-    progress_bar = st.progress(0, text="Starting...")
+    progress_bar = st.progress(0, text="正在启动...")
     log_container = st.container()
 
     with log_container:
-        st.subheader("📋 Agent Activity Log")
+        st.subheader("📋 Agent 活动日志")
 
-    # Build graph
-    with st.spinner("Building agent pipeline..."):
+    with st.spinner("正在构建 Agent 管线..."):
         graph = build_top_graph()
 
-    # Run the pipeline with streaming
     phase_map = {
-        "research_team": ("🔍", "Researching (web search + scraping)..."),
-        "analysis_team": ("📊", "Analyzing (SWOT + trends + comparison)..."),
-        "report_team": ("📝", "Writing report (outline + content + charts)..."),
+        "research_team": ("🔍", "搜索中（网络搜索 + 网页抓取）..."),
+        "analysis_team": ("📊", "分析中（SWOT + 趋势 + 竞品对比）..."),
+        "report_team": ("📝", "写报告中（大纲 + 内容 + 图表 + 编辑）..."),
     }
 
     event_index = 0
     total_phases = 4
 
     try:
-        import uuid
         for event in graph.stream(
             {"topic": topic, "messages": [{"role": "user", "content": topic}]},
             {
@@ -173,7 +169,6 @@ if run_button and topic:
             },
             subgraphs=True,
         ):
-            # LangGraph 1.x with subgraphs=True returns (namespace, event) tuples
             if isinstance(event, tuple) and len(event) == 2:
                 _, event = event
 
@@ -200,7 +195,6 @@ if run_button and topic:
                             preview = content[:300].replace("\n", " ")
                             if len(content) > 300:
                                 preview += "..."
-                            # Sanitize LLM output to prevent XSS
                             preview = bleach.clean(
                                 preview,
                                 tags=_ALLOWED_TAGS,
@@ -216,19 +210,18 @@ if run_button and topic:
                     else:
                         st.markdown(
                             f"<div class='agent-msg {agent_class}'>"
-                            f"<strong>{icon} {node_name}</strong> — completed"
+                            f"<strong>{icon} {node_name}</strong> — 已完成"
                             f"</div>",
                             unsafe_allow_html=True,
                         )
 
-        progress_bar.progress(1.0, text="✅ Complete!")
+        progress_bar.progress(1.0, text="✅ 完成!")
 
-        # Show results
-        st.success(f"✅ Research complete! Topic: **{topic}**")
+        st.success(f"✅ 研究完成! 话题: **{topic}**")
 
         report_files = sorted(OUTPUT_DIR.glob("*"))
         if report_files:
-            st.subheader("📁 Generated Files")
+            st.subheader("📁 生成的文件")
             for f in report_files:
                 if f.is_file():
                     col1, col2 = st.columns([4, 1])
@@ -243,30 +236,29 @@ if run_button and topic:
                         size_kb = f.stat().st_size / 1024
                         st.caption(f"{size_kb:.1f} KB")
 
-                    # Preview report
                     if f.suffix == ".md":
-                        with st.expander(f"Preview: {f.name}"):
+                        with st.expander(f"预览: {f.name}"):
                             content = f.read_text()
                             st.markdown(content[:5000])
 
                     if f.suffix == ".png":
-                        with st.expander(f"View: {f.name}"):
+                        with st.expander(f"查看: {f.name}"):
                             st.image(str(f))
 
         st.balloons()
 
     except Exception as e:
-        st.error(f"❌ Error: {e}")
+        st.error(f"❌ 错误: {e}")
         import traceback
-        with st.expander("Error details"):
+        with st.expander("错误详情"):
             st.code(traceback.format_exc())
 
     st.session_state.running = False
 
 elif run_button and not topic:
-    st.warning("Please enter a research topic.")
+    st.warning("请输入研究话题。")
 
-# ── Footer ─────────────────────────────────────────────────────────────────
+# ── 页脚 ─────────────────────────────────────────────────────────────────────
 st.divider()
-st.caption("Contelix v0.1.0 — Built with LangGraph + Streamlit | "
-           "Multi-Agent Competitive Intelligence Platform")
+st.caption("Contelix v0.2.0 — LangGraph + Streamlit | "
+           "多智能体竞争情报平台")

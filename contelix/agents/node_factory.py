@@ -72,9 +72,8 @@ def make_agent_node(agent, agent_name: str):
                     "messages": [
                         HumanMessage(
                             content=(
-                                f"[{agent_name}] encountered an error "
-                                f"({type(exc).__name__}). "
-                                "The team will continue with available information."
+                                f"[{agent_name}] 遇到错误 ({type(exc).__name__})。"
+                                "团队将利用已有信息继续工作。"
                             ),
                             name=agent_name,
                         )
