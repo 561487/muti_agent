@@ -14,10 +14,8 @@ class TestGenerateComparisonChart:
     def test_bar_chart(self, output_dir, monkeypatch):
         """Should generate a bar chart PNG file."""
         import contelix.config
-        import contelix.tools.visualization
-        # Patch OUTPUT_DIR in the visualization module since it imports at module level
-        monkeypatch.setattr(contelix.tools.visualization, "OUTPUT_DIR", output_dir)
-        monkeypatch.setattr(contelix.config, "OUTPUT_DIR", output_dir)
+        # Patch get_output_dir to return the test temp dir
+        monkeypatch.setattr(contelix.config, "get_output_dir", lambda: output_dir)
 
         data = json.dumps({
             "labels": ["Company A", "Company B", "Company C"],
