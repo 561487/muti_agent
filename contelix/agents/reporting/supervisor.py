@@ -5,12 +5,8 @@ Takes analysis output and produces a polished, professional report
 in markdown format with optional charts.
 """
 
-from typing import Literal
-
-from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START
 from langgraph.prebuilt import create_react_agent
-from langgraph.types import Command
 
 from contelix.config import ENABLE_DEBUG
 from contelix.llm_factory import get_llm
@@ -26,11 +22,6 @@ from contelix.tools.file_ops import (
     create_outline,
 )
 from contelix.tools.visualization import execute_python, generate_comparison_chart
-
-# ── LLM instance (lazy via factory) ───────────────────────────────────────
-
-def _get_llm():
-    return get_llm()
 
 # ── Member definitions ─────────────────────────────────────────────────────
 MEMBERS = ["outline_writer", "content_writer", "chart_generator", "editor"]
@@ -111,7 +102,7 @@ def _build_report_agents():
     agents = {}
     for name, cfg in MEMBER_SCHEMA.items():
         agents[name] = create_react_agent(
-            _get_llm(),
+            get_llm(),
             tools=cfg["tools"],
             prompt=cfg["prompt"],
             debug=ENABLE_DEBUG,
@@ -125,7 +116,7 @@ _AGENTS = _build_report_agents()
 # ── Build the Report Team graph ────────────────────────────────────────────
 
 _supervisor_node = make_supervisor_node(
-    _get_llm(),
+    get_llm(),
     MEMBERS,
     system_prompt=(
         f"You are the Report Team supervisor managing: {', '.join(MEMBERS)}.\n\n"

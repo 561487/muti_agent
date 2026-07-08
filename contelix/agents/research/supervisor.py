@@ -5,12 +5,8 @@ This team compiles a comprehensive research brief from multiple
 web sources on a given competitive intelligence topic.
 """
 
-from typing import Literal
-
-from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START
 from langgraph.prebuilt import create_react_agent
-from langgraph.types import Command
 
 from contelix.config import ENABLE_DEBUG
 from contelix.llm_factory import get_llm
@@ -21,11 +17,6 @@ from contelix.state.schemas import ResearchState
 from contelix.state.supervisor_factory import make_supervisor_node
 from contelix.tools.search import competitive_search, search_news
 from contelix.tools.scraping import scrape_webpages
-
-# ── LLM instance (lazy via factory) ───────────────────────────────────────
-
-def _get_llm():
-    return get_llm()
 
 # ── Member definitions ─────────────────────────────────────────────────────
 MEMBERS = ["search_agent", "scraper_agent"]
@@ -57,7 +48,7 @@ def _build_research_agents():
     agents = {}
     for name, cfg in MEMBER_SCHEMA.items():
         agents[name] = create_react_agent(
-            _get_llm(),
+            get_llm(),
             tools=cfg["tools"],
             prompt=cfg["prompt"],
             debug=ENABLE_DEBUG,
@@ -71,7 +62,7 @@ _AGENTS = _build_research_agents()
 # ── Build the Research Team graph ──────────────────────────────────────────
 
 _supervisor_node = make_supervisor_node(
-    _get_llm(),
+    get_llm(),
     MEMBERS,
     system_prompt=(
         f"You are the Research Team supervisor managing: {', '.join(MEMBERS)}.\n\n"

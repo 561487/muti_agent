@@ -7,6 +7,7 @@ Start with:
 """
 
 import os
+import threading
 import uuid
 import traceback
 from pathlib import Path
@@ -34,6 +35,7 @@ app = FastAPI(
 
 # ── In-memory task store ────────────────────────────────────────────────────
 _tasks: dict[str, dict] = {}
+_tasks_lock = threading.Lock()
 
 
 # ── Request/Response Models ──────────────────────────────────────────────────
@@ -76,8 +78,11 @@ class ResearchResult(BaseModel):
 
 def _run_research_task(task_id: str, request: ResearchRequest):
     """Execute a research task in the background."""
-    task = _tasks[task_id]
-    task["status"] = "running"
+    with _tasks_lock:
+        task = _tasks.get(task_id)
+        if task is None:
+            return
+        task["status"] = "running"
 
     if request.output_dir:
         os.environ["CONTELIX_OUTPUT_DIR"] = str(Path(request.output_dir).resolve())
@@ -111,9 +116,10 @@ def _run_research_task(task_id: str, request: ResearchRequest):
             [f.name for f in output_path.glob("*.png")]
         )
 
-        task["status"] = "completed"
-        task["report_files"] = report_files
-        task["chart_files"] = chart_files
+        with _tasks_lock:
+            task["status"] = "completed"
+            task["report_files"] = report_files
+            task["chart_files"] = chart_files
 
         logger.info(
             "api.research_completed",
@@ -123,8 +129,9 @@ def _run_research_task(task_id: str, request: ResearchRequest):
         )
 
     except Exception as e:
-        task["status"] = "failed"
-        task["error"] = str(e)
+        with _tasks_lock:
+            task["status"] = "failed"
+            task["error"] = str(e)
         logger.error(
             "api.research_failed",
             task_id=task_id,
@@ -162,14 +169,13 @@ async def start_research(request: ResearchRequest):
         )
 
     task_id = str(uuid.uuid4())[:8]
-    _tasks[task_id] = {
-        "status": "pending",
-        "topic": request.topic,
-        "output_dir": str(get_output_dir()),
-    }
+    with _tasks_lock:
+        _tasks[task_id] = {
+            "status": "pending",
+            "topic": request.topic,
+            "output_dir": str(get_output_dir()),
+        }
 
-    # Run synchronously for simplicity (can move to BackgroundTasks)
-    import threading
     thread = threading.Thread(
         target=_run_research_task,
         args=(task_id, request),
@@ -188,10 +194,11 @@ async def start_research(request: ResearchRequest):
 @app.get("/research/{task_id}", response_model=ResearchResult)
 async def get_research_result(task_id: str):
     """Get the status and results of a research task."""
-    if task_id not in _tasks:
-        raise HTTPException(status_code=404, detail="Task not found")
+    with _tasks_lock:
+        if task_id not in _tasks:
+            raise HTTPException(status_code=404, detail="Task not found")
+        task = dict(_tasks[task_id])  # Snapshot under lock
 
-    task = _tasks[task_id]
     return ResearchResult(
         task_id=task_id,
         status=task["status"],

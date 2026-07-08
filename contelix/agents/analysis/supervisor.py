@@ -5,12 +5,8 @@ Performs SWOT analysis, trend identification, and competitive comparison
 on the research data gathered by the Research Team.
 """
 
-from typing import Literal
-
-from langchain_core.messages import HumanMessage
 from langgraph.graph import StateGraph, START
 from langgraph.prebuilt import create_react_agent
-from langgraph.types import Command
 from langchain_core.tools import tool
 
 from contelix.config import ENABLE_DEBUG
@@ -21,11 +17,6 @@ from contelix.agents.node_factory import make_agent_node
 from contelix.state.schemas import AnalysisState
 from contelix.state.supervisor_factory import make_supervisor_node
 from contelix.tools.file_ops import write_document
-
-# ── LLM instance (lazy via factory) ───────────────────────────────────────
-
-def _get_llm():
-    return get_llm()
 
 # ── Analysis-specific tools ────────────────────────────────────────────────
 
@@ -101,7 +92,7 @@ def _build_analysis_agents():
     agents = {}
     for name, cfg in MEMBER_SCHEMA.items():
         agents[name] = create_react_agent(
-            _get_llm(),
+            get_llm(),
             tools=cfg["tools"],
             prompt=cfg["prompt"],
             debug=ENABLE_DEBUG,
@@ -115,7 +106,7 @@ _AGENTS = _build_analysis_agents()
 # ── Build the Analysis Team graph ──────────────────────────────────────────
 
 _supervisor_node = make_supervisor_node(
-    _get_llm(),
+    get_llm(),
     MEMBERS,
     system_prompt=(
         f"You are the Analysis Team supervisor managing: {', '.join(MEMBERS)}.\n\n"

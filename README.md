@@ -1,117 +1,111 @@
-# 🔍 Contelix — AI-Powered Competitive Intelligence Platform
+# Contelix — AI 竞争情报平台
 
+> **多智能体 AI 系统，自动完成竞争情报的搜索、分析与报告生成**
+>
 > **Multi-Agent System for Automated Competitive Research, Analysis & Reporting**
 >
-> Built with LangGraph · Qwen2.5 · Streamlit
+> Built with LangGraph · Qwen2.5 · FastAPI · Streamlit
 
 ---
 
-## What is Contelix?
+## 这是什么？ / What is Contelix?
 
-Contelix is a **multi-agent AI system** that automates competitive intelligence research. Given a company, product, or industry topic, it orchestrates a team of specialized AI agents to:
+Contelix 是一个**多层次多智能体 AI 系统**，输入一个公司、产品或行业话题，自动调度 8 个专业 AI Agent 完成：
 
-1. **🔍 Research** — Search the web and scrape detailed content from multiple sources
-2. **📊 Analyze** — Perform SWOT analysis, trend identification, and competitive comparison
-3. **📝 Report** — Generate a professional, structured competitive intelligence report with charts
+1. **搜索** — 多源网络搜索与内容抓取
+2. **分析** — SWOT 分析、趋势识别、竞品对比
+3. **报告** — 生成结构化专业竞争情报报告（含图表）
 
-The system uses a **three-tier hierarchical agent architecture** where each tier is managed by an LLM-based supervisor that routes tasks to specialized sub-agents.
+Contelix is a **multi-agent AI system** that automates competitive intelligence research. Given a topic, it orchestrates 8 specialized agents across a 3-tier architecture to search, analyze, and report.
 
 ---
 
-## 🏗️ Architecture
+## 架构 / Architecture
 
 ```
-User Input (Topic)
+User Input (Topic) / 用户输入
        │
        ▼
-┌─────────────────┐
-│  Top Supervisor │  ← "Chief CI Officer" — routes between teams
-│   (LangGraph)   │
-└────┬───────┬────┘
-     │       │
-     ▼       ▼
-┌─────────┐ ┌──────────┐
-│Research │ │Analysis  │
-│  Team   │ │  Team    │    Each team = independent LangGraph StateGraph
-│  ┌────┐ │ │  ┌─────┐ │    with its own Supervisor managing:
-│  │Search│ │ │SWOT   │ │
-│  │Scraper│ │ │Trend  │ │    • ReAct agents with specialized tools
-│  └────┘ │ │ │Compare│ │    • Supervisor → Agent → Supervisor routing
-└─────────┘ │  └─────┘ │
-            └──────────┘
-                  │
-                  ▼
-            ┌──────────┐
-            │ Report   │
-            │  Team    │
-            │  ┌─────┐ │
-            │  │Outline│
-            │  │Writer │
-            │  │Chart  │
-            │  │Editor │
-            │  └─────┘ │
-            └──────────┘
-                  │
-                  ▼
-          Final Report (.md)
-          + Charts (.png)
+┌──────────────┐
+│   Research   │  search_agent + scraper_agent
+│    Team      │  BochaAI / Tavily + WebBaseLoader
+└──────┬───────┘
+       │ research findings
+       ▼
+┌──────────────┐
+│   Analysis   │  swot_analyst + trend_analyst + comparison_analyst
+│    Team      │  SWOT · 趋势 · 竞品对比
+└──────┬───────┘
+       │ analysis results
+       ▼
+┌──────────────┐
+│   Report     │  outline_writer + content_writer
+│    Team      │  + chart_generator + editor
+└──────┬───────┘
+       │
+       ▼
+  Final Report (.md)
+  + Charts (.png)
 ```
 
-### Agent Orchestration Pattern
+**Top-level pipeline**: Simple sequential chain — no unnecessary LLM routing overhead.
 
-Each team follows the **Supervisor-Worker** pattern:
-
-1. **Supervisor Node** — LLM-powered router decides which specialist to call next
-2. **Specialist Agent** — ReAct agent with dedicated tools performs its task
-3. **Command(goto="supervisor")** — Agent returns results and control to supervisor
-4. **FINISH** — Supervisor signals when the team's work is complete
-
-The top-level graph chains three teams in sequence: Research → Analysis → Report.
+**Team internals**: Each team uses the **Supervisor-Worker** pattern with an LLM-based router managing ReAct agents with specialized tools.
 
 ---
 
-## 🚀 Quick Start
+## 快速开始 / Quick Start
 
-### Prerequisites
+### 环境要求 / Prerequisites
 
 - Python 3.11+
-- An LLM API key (Alibaba Bailian / OpenAI / compatible)
-- A search API key (BochaAI or Tavily)
+- LLM API Key（阿里百炼 / OpenAI / 兼容接口）
+- 搜索 API Key（BochaAI 或 Tavily）
 
-### Installation
+### 安装 / Installation
 
 ```bash
-# Clone and enter the project
 cd muti_agent
-
-# Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate   # Windows
+source .venv/bin/activate
 
-# Install dependencies
 pip install -r requirements.txt
-
-# Configure API keys
-cp contelix/.env.example .env
-# Edit .env with your API keys
+cp .env.example .env
+# 编辑 .env，填入你的 API Keys
 ```
 
-### CLI Usage
+### CLI 使用
 
 ```bash
-# Run a research task
-python -m contelix research "Tesla competitive position in EV market"
+# 运行研究任务
+python -m contelix research "Tesla 在全球电动车市场的竞争地位"
 
-# With verbose output (see agent decision-making)
-python -m contelix research "Cloud market AWS vs Azure vs GCP" --verbose
+# 详细输出（查看 Agent 决策过程）
+python -m contelix research "云计算市场 AWS vs Azure vs GCP" --verbose
 
-# Custom output directory
-python -m contelix research "AI coding assistants comparison" --output ./my_reports
+# 自定义输出目录
+python -m contelix research "AI 编程助手对比" --output ./my_reports
 
-# Launch web UI
+# 启动 Web UI
 python -m contelix run-ui
-# or: streamlit run contelix/ui/streamlit_app.py
+
+# 启动 API 服务
+python -m contelix run-api
+```
+
+### API 使用 / API Usage
+
+```bash
+# 提交研究任务
+curl -X POST http://localhost:8000/research \
+  -H "Content-Type: application/json" \
+  -d '{"topic": "Tesla EV competitive analysis"}'
+
+# 查询任务状态
+curl http://localhost:8000/research/{task_id}
+
+# 健康检查
+curl http://localhost:8000/health
 ```
 
 ### Docker
@@ -120,98 +114,138 @@ python -m contelix run-ui
 # Web UI
 docker-compose up contelix
 
-# CLI one-shot task
-docker-compose --profile cli run contelix-cli research "OpenAI strategy 2024"
+# CLI 一次性任务
+docker-compose --profile cli run contelix-cli research "OpenAI 战略分析"
 ```
 
 ---
 
-## 📊 Example Output
+## 示例输出 / Example Output
 
-After running a research task, the `output/` directory contains:
+运行研究任务后，`output/` 目录会生成：
 
 ```
 output/
-├── analysis_swot.md                          # SWOT analysis
-├── analysis_trend.md                         # Market trends
-├── analysis_comparison.md                    # Competitive comparison
-├── report_outline.txt                        # Report structure
-├── competitive_intelligence_report.md         # Final polished report
-└── market_share_comparison.png               # Generated chart
+├── analysis_swot.md                       # SWOT 分析
+├── analysis_trend.md                      # 市场趋势
+├── analysis_comparison.md                 # 竞品对比
+├── report_outline.txt                     # 报告大纲
+├── competitive_intelligence_report.md     # 最终报告
+└── market_share_comparison.png            # 可视化图表
 ```
 
 ---
 
-## 🛠️ Technology Stack
+## 技术栈 / Technology Stack
 
-| Layer | Technology |
-|-------|-----------|
-| **Agent Framework** | LangGraph (StateGraph, Command, create_react_agent) |
-| **LLM** | Qwen2.5-72B-Instruct (Alibaba Bailian) — configurable to any OpenAI-compatible API |
-| **Search** | BochaAI Web Search API / Tavily Search API |
-| **Web Scraping** | LangChain WebBaseLoader + BeautifulSoup |
-| **Data Analysis** | Python REPL, pandas, numpy |
-| **Visualization** | matplotlib |
+| 层级 / Layer | 技术 / Technology |
+|-------------|-------------------|
+| **Agent 框架** | LangGraph 1.x (StateGraph, Command, create_react_agent) |
+| **LLM** | Qwen2.5-72B-Instruct（阿里百炼）— 可替换任意 OpenAI 兼容 API |
+| **搜索** | BochaAI / Tavily 双后端，自动 fallback |
+| **网页抓取** | LangChain WebBaseLoader + BeautifulSoup |
+| **数据分析** | 子进程沙箱 Python 执行环境（安全隔离） |
+| **可视化** | matplotlib |
+| **API** | FastAPI |
 | **UI** | Streamlit |
-| **Deployment** | Docker + docker-compose |
+| **可观测性** | structlog 结构化日志 + LangSmith tracing |
+| **持久化** | Memory / SQLite / PostgreSQL 检查点 |
+| **部署** | Docker + docker-compose |
 
 ---
 
-## 📁 Project Structure
+## 项目结构 / Project Structure
 
 ```
 contelix/
-├── main.py                    # CLI entry point
-├── config.py                  # Environment-based configuration
+├── main.py                       # CLI 入口（research / run-ui / run-api）
+├── config.py                     # 环境变量驱动配置
+├── llm_factory.py                # 线程安全 LLM 工厂
+├── logging_config.py             # structlog 结构化日志配置
+├── retry.py                      # RetryPolicy 配置
 ├── agents/
-│   ├── supervisor.py          # Top-level orchestration graph
-│   ├── research/
-│   │   └── supervisor.py      # Research Team (search + scrape)
-│   ├── analysis/
-│   │   └── supervisor.py      # Analysis Team (SWOT + trend + compare)
-│   └── reporting/
-│       └── supervisor.py      # Report Team (outline + write + chart + edit)
+│   ├── supervisor.py             # 顶层编排（Research → Analysis → Report）
+│   ├── node_factory.py           # 共享 Agent 节点工厂（含错误处理）
+│   ├── research/supervisor.py    # Research Team（search + scraper）
+│   ├── analysis/supervisor.py    # Analysis Team（SWOT + trend + comparison）
+│   └── reporting/supervisor.py   # Report Team（outline + write + chart + edit）
 ├── state/
-│   ├── schemas.py             # State type definitions
-│   └── supervisor_factory.py  # Reusable supervisor node factory
+│   ├── schemas.py                # State 类型定义
+│   └── supervisor_factory.py     # 可复用 Supervisor 节点工厂
 ├── tools/
-│   ├── search.py              # Web search tools (BochaAI, Tavily)
-│   ├── scraping.py            # Web scraping tools
-│   ├── file_ops.py            # File I/O tools
-│   └── visualization.py       # Chart generation + Python execution
+│   ├── search.py                 # 网络搜索工具
+│   ├── scraping.py               # 网页抓取工具
+│   ├── file_ops.py               # 文件 I/O 工具（含路径穿越保护）
+│   ├── visualization.py          # 图表生成 + 沙箱 Python 执行
+│   └── sandbox.py                # 子进程沙箱（RCE 防护）
+├── checkpoint/
+│   └── manager.py                # 检查点管理（memory/sqlite/postgres）
+├── api/
+│   ├── app.py                    # FastAPI 应用
+│   └── __init__.py
 ├── ui/
-│   └── streamlit_app.py       # Streamlit web interface
-└── tests/
-    └── test_tools.py          # Tool unit tests
+│   └── streamlit_app.py          # Streamlit Web 界面
+├── tests/
+│   ├── conftest.py               # 共享 fixtures
+│   ├── test_tools.py             # 文件操作测试
+│   ├── test_search.py            # 搜索工具测试
+│   ├── test_scraping.py          # 抓取工具测试
+│   ├── test_visualization.py     # 可视化 + 沙箱安全测试
+│   └── test_config.py            # 配置验证测试
+└── docs/
+    └── contelix-design-doc.md    # 设计文档
 ```
 
 ---
 
-## 🔑 Key Design Decisions
+## 设计决策 / Key Design Decisions
 
-- **Hierarchy over Network**: Supervisor pattern ensures coherent multi-step workflows; avoids agent loops
-- **Independent StateGraphs per Team**: Each team is a self-contained graph; clean separation of concerns
-- **ReAct Agents with Tools**: Agents make autonomous tool-use decisions within their domain
-- **Message-based State**: Uses LangGraph's `MessagesState` for natural agent communication
-- **Structured Output for Routing**: Supervisors use `with_structured_output()` for reliable JSON routing decisions
-
----
-
-## 🎯 Future Roadmap
-
-- [ ] ChromaDB integration for caching research (RAG)
-- [ ] PDF report generation (via LaTeX or WeasyPrint)
-- [ ] Scheduled monitoring (periodic competitive intelligence updates)
-- [ ] Slack/Discord bot integration for on-demand research
-- [ ] Multi-language search and report generation
-- [ ] Competitive landscape interactive dashboard
+- **固定流水线顶层**：顶层不再用 LLM 路由，改为确定性的链式调用，节省 LLM 调用次数，消除路由失败风险
+- **层级 Supervisor 模式**：每个 Team 内部采用 LLM 路由的 Supervisor-Worker 模式，Agent 自主决策工具调用
+- **独立 StateGraph**：每个 Team 是自包含的编译子图，职责清晰、互不污染
+- **子进程沙箱**：LLM 生成的 Python 代码在 import 白名单 + 文件访问受限的子进程中执行
+- **路径穿越保护**：所有文件操作经过 `_resolve_safe_path()` 校验
+- **结构化日志**：`structlog` 终端彩色输出 / 管道 JSON 输出，兼容 ELK/Loki
+- **检查点持久化**：支持 Memory / SQLite / PostgreSQL 三种后端，崩溃后可恢复
+- **线程安全 LLM 工厂**：按 (model, temperature) 缓存实例，支持并发图执行
 
 ---
 
-## 📝 License
+## 安全 / Security
 
-MIT License — use freely for personal and commercial projects.
+| 防护 | 实现 |
+|------|------|
+| RCE 防护 | 子进程沙箱，import 白名单，无 `os`/`subprocess`/`socket` |
+| 路径穿越 | `_resolve_safe_path()` 拦截 `../` 和绝对路径 |
+| XSS 防护 | `bleach` HTML 清洗，仅允许安全标签 |
+| API Key 泄露 | 异常信息脱敏，`.gitignore` 排除 `.env` |
 
 ---
 
-*Built for demonstrating multi-agent AI engineering skills in production-grade agentic applications.*
+## 测试 / Tests
+
+```bash
+pytest contelix/tests/ -v        # 32 tests: tools, search, scraping, viz, sandbox, config
+```
+
+---
+
+## 路线图 / Roadmap
+
+- [ ] ChromaDB 集成（RAG 缓存研究结果）
+- [ ] PDF 报告生成（LaTeX / WeasyPrint）
+- [ ] CI/CD Pipeline（GitHub Actions）
+- [ ] 定时监控（周期性竞争情报更新）
+- [ ] Slack/Discord Bot 集成
+- [ ] 多语言搜索与报告生成
+- [ ] 竞争格局交互式仪表板
+
+---
+
+## 许可证 / License
+
+MIT License — 个人和商业项目均可自由使用。
+
+---
+
+*一个展示生产级多智能体 AI 工程能力的项目。Built for demonstrating production-grade multi-agent AI engineering.*

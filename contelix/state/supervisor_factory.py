@@ -6,7 +6,7 @@ This is the core orchestration pattern used at every level of Contelix:
 Top-level boss, Research supervisor, Analysis supervisor, Report supervisor.
 """
 
-from typing import List, Literal
+from typing import Callable, List, Literal, Optional
 
 from langchain_core.language_models.chat_models import BaseChatModel
 from langchain_core.messages import SystemMessage
@@ -14,14 +14,12 @@ from langgraph.graph import END
 from langgraph.types import Command
 from typing_extensions import TypedDict
 
-from contelix.state.schemas import OverallState
-
 
 def make_supervisor_node(
     llm: BaseChatModel,
     members: List[str],
-    system_prompt: str = None,
-) -> callable:
+    system_prompt: Optional[str] = None,
+) -> Callable:
     """
     Create a supervisor node that routes tasks to the appropriate sub-agent.
 
@@ -63,7 +61,7 @@ def make_supervisor_node(
         """Route to the next specialist, or FINISH if done."""
         next: str
 
-    def supervisor_node(state: OverallState) -> Command:
+    def supervisor_node(state: dict) -> Command:
         """The supervisor node — decides which agent acts next."""
         messages = [
             SystemMessage(content=system_prompt),
@@ -75,6 +73,6 @@ def make_supervisor_node(
         if goto == "FINISH":
             goto = END
 
-        return Command(goto=goto, update={"next_team": goto if goto != END else "FINISH"})
+        return Command(goto=goto)
 
     return supervisor_node
