@@ -12,7 +12,7 @@ import subprocess
 import textwrap
 from pathlib import Path
 
-from contelix.config import OUTPUT_DIR, SANDBOX_TIMEOUT
+from contelix.config import SANDBOX_TIMEOUT, get_output_dir
 
 # ── Sandbox Configuration ────────────────────────────────────────────────────
 
@@ -62,9 +62,8 @@ ALLOWED_MODULES = frozenset({
     "traceback",
 })
 
-# Preamble injected before user code to set up the sandbox environment.
-# Uses import whitelist — the safe, portable, non-breaking approach.
-SANDBOX_PREAMBLE = textwrap.dedent(f"""
+# Preamble template — formatted at call time with current output_dir.
+_SANDBOX_PREAMBLE_TEMPLATE = textwrap.dedent("""
 import builtins
 
 # ── matplotlib non-interactive backend (before import hook) ──────────────
@@ -76,7 +75,7 @@ except ImportError:
 
 # ── Working directory and env (before import hook) ───────────────────────
 import os as _os
-_os.chdir("{OUTPUT_DIR}")
+_os.chdir("{output_dir}")
 _os.environ["MPLBACKEND"] = "Agg"
 
 # ── Restricted file I/O (before import hook) ────────────────────────────
@@ -84,7 +83,7 @@ _orig_open = builtins.open
 _osp_realpath = _os.path.realpath
 _osp_join = _os.path.join
 _osp_sep = _os.path.sep
-_output_dir = _os.path.realpath("{OUTPUT_DIR}")
+_output_dir = _os.path.realpath("{output_dir}")
 
 def _safe_open(file, mode='r', *args, **kwargs):
     file_str = file if isinstance(file, str) else str(file)
@@ -99,7 +98,7 @@ builtins.open = _safe_open
 
 # ── Safe import hook (INSTALL LAST — after all setup imports) ────────────
 _orig_import = builtins.__import__
-_ALLOWED = {ALLOWED_MODULES}
+_ALLOWED = {allowed_modules}
 
 def _safe_import(name, globals=None, locals=None, fromlist=(), level=0):
     top_level = name.split('.')[0]
@@ -135,7 +134,11 @@ def execute_sandboxed(code: str, timeout: int = None) -> str:
     if timeout is None:
         timeout = SANDBOX_TIMEOUT
 
-    sandbox_script = SANDBOX_PREAMBLE + "\n" + code
+    output_dir = str(get_output_dir())
+    sandbox_script = _SANDBOX_PREAMBLE_TEMPLATE.format(
+        output_dir=output_dir,
+        allowed_modules=ALLOWED_MODULES,
+    ) + "\n" + code
 
     try:
         result = subprocess.run(
@@ -143,10 +146,10 @@ def execute_sandboxed(code: str, timeout: int = None) -> str:
             capture_output=True,
             text=True,
             timeout=timeout,
-            cwd=str(OUTPUT_DIR),
+            cwd=output_dir,
             env={
                 "MPLBACKEND": "Agg",
-                "HOME": str(OUTPUT_DIR),
+                "HOME": output_dir,
                 "PATH": os.environ.get("PATH", "/usr/bin:/bin"),
                 # Purge potentially dangerous env vars
                 "PYTHONPATH": "",
@@ -164,7 +167,7 @@ def execute_sandboxed(code: str, timeout: int = None) -> str:
         else:
             error = result.stderr.strip() or result.stdout.strip()
             # Sanitize error to avoid leaking filesystem paths
-            error_safe = error.replace(str(OUTPUT_DIR), "<output_dir>")
+            error_safe = error.replace(output_dir, "<output_dir>")
             return f"Execution Error:\n```\n{error_safe[:2000]}\n```"
 
     except subprocess.TimeoutExpired:

@@ -32,7 +32,7 @@ if str(project_root) not in sys.path:
 
 from contelix.config import (
     validate_config,
-    OUTPUT_DIR,
+    get_output_dir,
     MAX_RECURSION_LIMIT,
 )
 from contelix.agents.supervisor import build_top_graph
@@ -104,7 +104,7 @@ with st.sidebar:
 
     st.divider()
 
-    st.caption(f"输出目录: `{OUTPUT_DIR}`")
+    st.caption(f"输出目录: `{get_output_dir()}`")
 
 # ── 主界面 ──────────────────────────────────────────────────────────────────
 st.title("🔍 竞争情报研究")

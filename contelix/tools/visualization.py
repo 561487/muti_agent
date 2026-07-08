@@ -8,7 +8,7 @@ from typing import Annotated
 
 from langchain_core.tools import tool
 
-from contelix.config import OUTPUT_DIR
+from contelix.config import get_output_dir
 from contelix.tools.sandbox import execute_sandboxed
 
 
@@ -120,7 +120,7 @@ def generate_comparison_chart(
     ax.legend(loc="best")
     plt.tight_layout()
 
-    filepath = OUTPUT_DIR / filename
+    filepath = get_output_dir() / filename
     fig.savefig(filepath, dpi=150)
     plt.close(fig)
 

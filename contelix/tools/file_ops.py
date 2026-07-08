@@ -7,7 +7,7 @@ from typing import Annotated, Dict, List, Optional
 
 from langchain_core.tools import tool
 
-from contelix.config import OUTPUT_DIR
+from contelix.config import get_output_dir
 
 
 def _resolve_safe_path(file_name: str) -> Path:
@@ -26,7 +26,7 @@ def _resolve_safe_path(file_name: str) -> Path:
     Raises:
         ValueError: If the resolved path escapes OUTPUT_DIR.
     """
-    output = OUTPUT_DIR.resolve()
+    output = get_output_dir().resolve()
     target = (output / file_name).resolve()
 
     # Check that target is OUTPUT_DIR itself or a child of it
@@ -169,7 +169,7 @@ def list_output_files() -> str:
     Returns:
         Listing of all output files with sizes.
     """
-    files = sorted(OUTPUT_DIR.glob("*"))
+    files = sorted(get_output_dir().glob("*"))
     if not files:
         return "No files in output directory."
 
